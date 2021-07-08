@@ -1,0 +1,55 @@
+{
+    "Actions": [
+        {
+            "Icon": "switchChooseIcon", 
+            "Name": "Choose New Fronters", 
+            "States": [
+                {
+                    "Image": "switchChooseIcon",
+                    "TitleAlignment": "bottom", 
+                    "FontSize": "11"
+                }
+            ], 
+            "SupportedInMultiActions": false,
+            "Tooltip": "Choose new fronting members from a list",
+            "UUID": "me.theapplefreak.pkswitch.switchchoose"
+        },
+        {
+            "Icon": "switchDirectIcon", 
+            "Name": "Register New Fronter", 
+            "States": [
+                {
+                    "Image": "switchDirectIcon",
+                    "TitleAlignment": "bottom", 
+                    "FontSize": "11"
+                }
+            ], 
+            "SupportedInMultiActions": false,
+            "Tooltip": "Directly registers one or more predetermined members as the current fronters",
+            "UUID": "me.theapplefreak.pkswitch.switchdirect"
+        }
+    ],
+    "SDKVersion": 2,
+    "Author": "TheAppleFreak",
+    "Category": "PluralKit Switch",
+    "CategoryIcon": "pluginIcon",
+    "CodePath": "index.html",
+    "Description": "Lets you quickly register switches in PluralKit.",
+    "Name": "PluralKit Switch",
+    "Icon": "pluginIcon",
+    "PropertyInspectorPath": "property-inspector.html",
+    "Version": "1.0.0",
+    "OS": [
+        {
+            "Platform": "mac",
+            "MinimumVersion": "10.11"
+        },
+        {
+            "Platform": "windows",
+            "MinimumVersion": "10"
+        }
+    ],
+    "Software": {
+        "MinimumVersion": "4.1"
+    }
+}

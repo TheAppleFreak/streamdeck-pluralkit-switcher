@@ -1,0 +1,8 @@
+{
+    "Description": "Choose one or more new fronters.",
+    "Name": "Choose New Fronter",
+    "me.theapplefreak.pkswitch.switchchoose": {
+        "Name": "Choose New Fronter",
+        "Tooltip": "Opens a menu to select one or more new fronters."
+    }
+}
