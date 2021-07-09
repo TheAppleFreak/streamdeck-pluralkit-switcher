@@ -7,33 +7,46 @@ import {
 } from "streamdeck-typescript";
 
 import { BaseAction, RootPlugin } from "../base";
+import GlobalPluralKit from "../libraries/globalPluralkit";
 import "../libraries/ESDTimerFix";
-import PluralKit from "../libraries/pluralkit";
 
 import { SwitchChooseSettingsInterface } from ".";
 
 export default class SwitchChooseAction extends BaseAction<SwitchChooseAction> {
-    private pk: PluralKit; 
+    private pk?: GlobalPluralKit; 
 
     constructor(plugin: RootPlugin, actionName: string) {
         super(plugin, actionName);
-
-        this.pk = new PluralKit();
     }
 
     @SDOnActionEvent("willAppear")
-    public onContextAppear(event: WillAppearEvent<SwitchChooseSettingsInterface>) {
+    public async onContextAppear(event: WillAppearEvent<SwitchChooseSettingsInterface>) {
         this.updateMetadata(event);
+
+        // Not sure why a new instance would have this set before willAppear, but eh
+        if (!this.pk) {
+            if (event.payload.settings.token && event.payload.settings.token !== "") {
+                this.pk = new GlobalPluralKit(event.payload.settings.token);
+    
+                try {
+                    await this.pk.isUsable();
+                } catch (err) {
+                    this.plugin.setTitle("err", this.context);
+                }
+            }
+        } else {
+            
+        }
     }
 
     @SDOnActionEvent("willDisappear")
-    public onContextDisappear(event: WillDisappearEvent<SwitchChooseSettingsInterface>) {
-        
+    public async onContextDisappear(event: WillDisappearEvent<SwitchChooseSettingsInterface>) {
+        this.plugin.setTitle("choose", this.context);
     }
 
     @SDOnActionEvent("keyDown") 
     public async onKeyDown(event: KeyDownEvent<SwitchChooseSettingsInterface>) {
-        this.log.debug(`Has auth token: ${this.pk.hasAuthToken()}`);
-        this.log.debug(await this.pk.getSystemInfo("txrnm"));
+        this.log.debug(await this.pk?.isUsable());
+        this.log.debug(await this.pk?.instance.getSystemInfo());
     }
 }

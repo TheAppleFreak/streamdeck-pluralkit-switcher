@@ -37,7 +37,8 @@ module.exports = {
         }),
         new CopyWebpackPlugin({
             patterns: [
-                { from: path.join(__dirname, "src", "static"), to: "." }
+                { from: path.join(__dirname, "src", "static"), to: "." },
+                { from: path.join(__dirname, "src", "localizations", "sd"), to: "." }
             ]
         }),
         new HtmlWebpackPlugin({

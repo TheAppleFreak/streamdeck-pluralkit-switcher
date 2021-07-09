@@ -1,121 +1,81 @@
 import axios, { AxiosInstance } from "axios";
 
 export default class PluralKit {
-    private axiosUnauthed: AxiosInstance;
-    private axiosAuthed: AxiosInstance;
-    private _authToken: string;
-    public sysId: string;
+    private axios: AxiosInstance;
+    private _semaphore: Promise<Status>;
+    private _resolve: any;
+    private _reject: any;
+    
+    private _sysId?: string;
+    
+    public thing: number;
 
-    constructor(authToken: string = "") {
-        this._authToken = authToken;
-        this.sysId = "";
-        
-        this.axiosAuthed = axios.create({
-            baseURL: "https://api.pluralkit.me/v1/"
+    constructor(token: string) {
+        this.axios = axios.create({
+            baseURL: "https://api.pluralkit.me/v1",
+            headers: {
+                Authorization: token
+            }
         });
-        
-        this.axiosUnauthed = axios.create({
-            baseURL: "https://api.pluralkit.me/v1/"
+
+        this._semaphore = new Promise((resolve, reject) => {
+            this._resolve = resolve;
+            this._reject = reject;
         });
+
+        this.validateToken();
+
+        this.thing = Math.floor(Math.random() * 100);
     }
 
-    /**
-     * Checks to see whether or not the class instance has a valid auth token.
-     */
-    public hasAuthToken(): boolean {
-        return this._authToken.length === 64 && this.sysId !== undefined
-    }
-
-    /**
-     * Validates an authorization token and gets the system ID
-     * @param token - The 64 character authorization token, as returned by `pk;token`
-     * @returns Returns `true` if the auth token validates correctly, throws otherwise
-     */
-    public async setAuthToken(token: string): Promise<boolean> {
-        // Auth tokens are 64 characters long
-        if (token.length !== 64) 
-            throw new Error("Invalid PK auth token");
-        
+    private async validateToken(): Promise<void> {
         try {
-            // Check to see if we can get a system ID
-            const res = await this.axiosAuthed.get("s", {
-                headers: {
-                    Authorization: token
-                }
+            const res = await this.getSystemInfo();
+
+            this._sysId = res.id;
+            this._resolve!({
+                usable: true,
+                status: null
             });
 
-            this._authToken = token;
-            this.sysId = res.data.id;
+            console.log("validated");
+        } catch (err: any) {
+            this._reject!({
+                usable: false,
+                status: err.message
+            });
 
-            this.axiosAuthed.defaults.headers.common["Authorization"] = token;
-        } catch (err) {
-            // If we keep any existing data, there's a possibility we might enter an unknown program state
-            // Best clear it to be sure
-            this._authToken = "";
-            this.sysId = "";
-            this.axiosAuthed.defaults.headers.common["Authorization"] = undefined;
-
-            // This is more than likely an Axios error. If it isn't, I don't know.
-            if (err.response) {
-                // Server responded with something that wasn't in the range of 2xx
-                throw new Error(`PK API responded with nonstandard status code - ${err.response.status}`);
-            } else if (err.request) {
-                // The request was made but no response was received
-                throw new Error(`No response received from PK API`);
-            } else {
-                // yeah I don't know
-                throw new Error(`Something unknown happened - ${err}`);
-            }
+            throw err;
         }
-
-        return true
     }
 
-    /**
-     * Makes an unauthorized GET request against the PluralKit API. 
-     * @param endpoint - The endpoint to query, with a leading slash (`/`)
-     * @returns Returns the API response data from Axios. Throws if something goes wrong.
-     */
-    private async makeUnauthedRequest(endpoint: string): Promise<any> {
-        try {
-            const res = await this.axiosUnauthed.get(endpoint);
+    public isUsable(): Promise<Status> {
+        return this._semaphore;
+    }
 
-            return res.data;
-        } catch (err) {
-            // This is more than likely an Axios error. If it isn't, I don't know.
-            if (err.response) {
-                // Server responded with something that wasn't in the range of 2xx
-                throw new Error(`PK API responded with nonstandard status code - ${err.response.status}`);
-            } else if (err.request) {
-                // The request was made but no response was received
-                throw new Error(`No response received from PK API`);
-            } else {
-                // yeah I don't know
-                throw new Error(`Something unknown happened - ${err}`);
-            }
-        }
+    public async getSystemId(): Promise<string> {
+        await this.isUsable();
+
+        return this._sysId!
     }
 
     /**
      * Makes an authorized request against the PluralKit API. 
-     * @param endpoint - The endpoint to query, with a leading slash (`/`)
-     * @param method - The HTTP method to use for the response
-     * @param params - Any parameters to use
-     * @returns Returns the API response data from Axios. Throws if the authorization token is not set.
+     * @param {string} endpoint - The endpoint to query, with a leading slash (`/`)
+     * @param {"GET" | "POST" | "PATCH" | "DELETE"} [method="GET"] - The HTTP method to use for the response
+     * @param {any} [params] - Any parameters to use
+     * @returns Returns the API response data from Axios. Throws if the PK API sends an error
      */
-    private async makeAuthedRequest(endpoint: string, method: "GET" | "POST" | "PATCH" | "DELETE", params?: any): Promise<any> {
-        if (this._authToken === "")
-            throw new Error("Auth token not set, cannot make authed request");
-
+    public async makeRequest(endpoint: string, method: "GET" | "POST" | "PATCH" | "DELETE" = "GET", params?: any): Promise<any> {
         try {
-            const res = await this.axiosAuthed({
+            const res = await this.axios({
                 method,
                 url: endpoint,
                 data: params
             });
 
             return res.data;
-        } catch (err) {
+        } catch (err: any) {
             // This is more than likely an Axios error. If it isn't, I don't know.
             if (err.response) {
                 // Server responded with something that wasn't in the range of 2xx
@@ -130,59 +90,44 @@ export default class PluralKit {
         }
     }
 
-    /**
-     * Returns information about a system.
-     * 
-     * {@link https://pluralkit.me/api/#get-s `/s` - PK API docs}
-     * {@link https://pluralkit.me/api/#get-s-id `/s/:id` - PK API docs}
-     * @param {string} [id] - The system ID to search for. Searches for the authenticated user's own system if omitted.
-     * @returns Returns the API response. Throws if an error occurs.
-     */
-    public async getSystemInfo(id?: string): Promise<any> {
-        if (id && id !== this.sysId) {
-            return await this.makeUnauthedRequest(`/s/${id}`);
+    public getSystemInfo(id?: string): Promise<any> {
+        if (id) {
+            return this.makeRequest(`/s/${id}`);
         } else {
-            return await this.makeAuthedRequest("/s", "GET");
+            return this.makeRequest(`/s`);
         }
     }
 
-    /**
-     * Returns system members.
-     * 
-     * {@link https://pluralkit.me/api/#get-s-id-members `/s/:id/members` - PK API docs}
-     * @param {string} [id] - The system ID to search for. Searches for the authenticated user's own system members if omitted.
-     * @returns Returns the API response. Throws if an error occurs.
-     */
-    public async getMembers(id?: string): Promise<any> {
-        if (id && id !== this.sysId) {
-            return await this.makeUnauthedRequest(`/s/${id}/members`);
+    public getMembers(id?: string): Promise<any> {
+        if (id) {
+            return this.makeRequest(`/s/${id}/members`);
         } else {
-            return await this.makeAuthedRequest(`/s${this.sysId}/members`, "GET");
+            return this.makeRequest(`/s/${this._sysId}/members`);
         }
     }
 
-    /**
-     * Returns current fronters for the given system.
-     * 
-     * {@link https://pluralkit.me/api/#get-s-id-fronters `/s/:id/fronters` - PK API docs}
-     * @param {string} [id] - The system ID to search for. Searches for the authenticated user's own system fronters if omitted.
-     * @returns Returns the API response. Throws if an error occurs.
-     */
-    public async getFronters(id?: string): Promise<any> {
-        if (id && id !== this.sysId) {
-            return await this.makeUnauthedRequest(`/s/${id}/fronters`);
+    public getFronters(id?: string): Promise<any> {
+        if (id) {
+            return this.makeRequest(`/s/${id}/fronters`);
         } else {
-            return await this.makeAuthedRequest(`/s${this.sysId}/fronters`, "GET");
+            return this.makeRequest(`/s/${this._sysId}/fronters`);
         }
     }
 
-    /**
-     * Registers a new switch for the authorized user.
-     * 
-     * {@link https://pluralkit.me/api/#post-s-switches `/s/switches` - PK API docs}
-     * @returns Returns the API response. Throws if an error occurs.
-     */
-    public async postSwitch(members: string[]): Promise<any> {
-        return await this.makeAuthedRequest(`/s/members`, "POST", {members});
+    public getSwitches(id?: string): Promise<any> {
+        if (id) {
+            return this.makeRequest(`/s/${id}/switches`);
+        } else {
+            return this.makeRequest(`/s/${this._sysId}/switches`);
+        }
     }
+    
+    public postSwitch(members: string[] = []): Promise<any> {
+        return this.makeRequest(`/s/members`, "POST", {members});
+    }
+}
+
+interface Status {
+    usable: boolean, 
+    status: string | null
 }
