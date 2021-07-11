@@ -12,7 +12,8 @@
             ], 
             "SupportedInMultiActions": false,
             "Tooltip": "Choose new fronting members from a list",
-            "UUID": "me.theapplefreak.pkswitch.switchchoose"
+            "UUID": "me.theapplefreak.pkswitch.switchchoose",
+            "PropertyInspectorPath": "switchChoosePi.html"
         },
         {
             "Icon": "switchDirectIcon", 
@@ -26,18 +27,18 @@
             ], 
             "SupportedInMultiActions": false,
             "Tooltip": "Directly registers one or more predetermined members as the current fronters",
-            "UUID": "me.theapplefreak.pkswitch.switchdirect"
+            "UUID": "me.theapplefreak.pkswitch.switchdirect",
+            "PropertyInspectorPath": "switchDirectPi.html"
         }
     ],
     "SDKVersion": 2,
     "Author": "TheAppleFreak",
     "Category": "PluralKit Switch",
     "CategoryIcon": "pluginIcon",
-    "CodePath": "index.html",
+    "CodePath": "main.html",
     "Description": "Lets you quickly register switches in PluralKit.",
     "Name": "PluralKit Switch",
     "Icon": "pluginIcon",
-    "PropertyInspectorPath": "property-inspector.html",
     "Version": "1.0.0",
     "OS": [
         {

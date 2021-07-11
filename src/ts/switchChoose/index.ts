@@ -1,5 +1,5 @@
 import SwitchChooseAction from "./action";
-import SwitchChooseSettingsInterface from "./pi";
+import SwitchChooseSettingsInterface from "./interface";
 
 export {
     SwitchChooseAction,

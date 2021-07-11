@@ -42,6 +42,7 @@
     "js-sha512": "^0.8.0",
     "lodash": "^4.17.21",
     "make-dir-cli": "^3.0.0",
+    "mini-css-extract-plugin": "^2.1.0",
     "node-polyfill-webpack-plugin": "^1.1.4",
     "node-sass": "^6.0.1",
     "rimraf": "^3.0.2",

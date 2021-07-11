@@ -1,5 +1,5 @@
 import SwitchDirectAction from "./action";
-import SwitchDirectSettingsInterface from "./pi";
+import SwitchDirectSettingsInterface from "./interface";
 
 export {
     SwitchDirectAction,

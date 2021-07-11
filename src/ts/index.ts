@@ -10,5 +10,4 @@ export default class PkSwitch extends StreamDeckPluginHandler {
     }
 }
 
-
-const plugin = new PkSwitch();
+new PkSwitch();

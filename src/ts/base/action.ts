@@ -4,9 +4,9 @@ import {
     WillDisappearEvent,
     StateType
 } from "streamdeck-typescript";
-import { Logger, Filter, Human, Browser } from "caterpillar";
+import { Logger } from "caterpillar";
 
-import { RootPlugin } from ".";
+import { Log, RootPlugin } from ".";
 import "../libraries/ESDTimerFix";
 
 export default abstract class BaseAction<Instance> extends StreamDeckAction<RootPlugin, Instance> {
@@ -31,8 +31,7 @@ export default abstract class BaseAction<Instance> extends StreamDeckAction<Root
         this.state = -1;
         this.isInMultiAction = false;
 
-        this.log = new Logger();
-        this.log.pipe(new Filter({filterLevel: 7})).pipe(new Human()).pipe(new Browser());
+        this.log = Log;
     }
 
     abstract onContextAppear(event: WillAppearEvent): void;
